@@ -1,12 +1,36 @@
-deploy_model ="/home/gpu_user/corentin/flownet2/models/FlowNet2-s/FlowNet2-s_deploy.prototxt.template"
-weights ="/home/gpu_user/corentin/flownet2/models/FlowNet2-s/coco-weights-3.caffemodel"
-weights_original="/home/gpu_user/corentin/flownet2/models/FlowNet2-s/coco-FlowNet2-s_weights.caffemodel"
-img0_p = "/home/gpu_user/corentin/lake-dataset/140606f/0036/0390.jpg"
-img1_p = "/home/gpu_user/corentin/lake-dataset/140606f/0036/0391.jpg"
-flow_p ="/home/gpu_user/corentin/FlowNet2-s/model3/140606f-0036-0390-0391-out.flo"
-prefix = "/home/gpu_user/corentin/FlowNet2-s/model3/140606f-0036-0390-0391"
-prefix_original ="/home/gpu_user/corentin/FlowNet2-s/model-original/140606f-0036-0390-0391"
+from train import train
+import sys
+import argparse
 
-from tools import *
 
-test_model_on_image_pair(deploy_model, weights, img0_p, img1_p, prefix)
+def call_train(parser):    
+    train(parser.prototxt, parser.input_weights, parser.output_weights, parser.iterations, 
+          solver=None, disp_interval=10, log_file=parser.log_file)
+
+def main():
+ 
+    parser = argparse.ArgumentParser(description='Use flownet 2')
+          
+    subparsers = parser.add_subparsers(help='command')
+          
+    parser_train = subparsers.add_parser('train', help='a help')
+       
+    parser_train.add_argument('prototxt')
+    parser_train.add_argument('input_weights')
+    parser_train.add_argument('output_weights')
+    parser_train.add_argument('iterations')
+    parser_train.add_argument('log_file')
+    parser_train.set_defaults(func=call_train)
+    
+    args = parser.parse_args()
+    
+    args.func(args)
+
+
+if __name__ == '__main__':
+    main()
+    
+    
+    
+    
+    
