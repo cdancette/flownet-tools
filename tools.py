@@ -16,13 +16,21 @@ def open_image(image_path):
 
 def apply_flow_reverse(image, flow):
     h, w = flow.shape[:2]
+    print("    h, w = flow.shape[:2]")
+    print(flow.shape)
+    print(image.shape)
     # openCV coordinates are inversed / numpy
     map_x = flow[:,:,0] + np.arange(w)
     map_x = map_x.astype('float32')
     map_y = flow[:,:,1] + np.arange(h)[:,np.newaxis]
     map_y = map_y.astype('float32')
+    print("pre remap")
+    print(map_x.shape)
+    print(map_y.shape)
+    print(image.shape)
     new_image = cv2.remap(image, map_x, map_y, cv2.INTER_LINEAR)
-    return new_image
+    print("remap done")
+    return image
 
 def apply_flow_reverse_path(second_image_path, incoming_flow_path, output_path):
     second_image = open_image(second_image_path)
@@ -158,3 +166,45 @@ def make_lmdb(list_path, output_path):
         line = process.stdout.readline()
         print(line)
         if not line: break
+            
+### TESTING
+
+from run_model import run_model
+
+def test_model_on_image_pair(prototxt,
+              model_weights, img0_p, img1_p, prefix):
+    """
+    img0_p, img1_p : paths
+    prefix : path where the output files will be saved (flow, and expected image)
+    """
+    flow_p = prefix + "-out.flo"
+    
+    it1 = cv2.imread(img1_p)
+    it0 = cv2.imread(img0_p)
+   
+    run_model(prototxt, model_weights, img0_p, img1_p, flow_p, verbose=True)
+    
+    flow = optical_flow_lib.read_flo_file(flow_p)    
+    expected_it0 = apply_flow_reverse(it1, flow)
+    cv2.imwrite(prefix + "img0-expected.jpg", expected_it0)       
+    
+    cv2.imwrite(prefix + "-img0.jpg", it0)
+    cv2.imwrite(prefix + "-img1.jpg", it1)
+
+    optical_flow_lib.save_flow_image(flow, prefix + "-flo.png")
+    
+    
+#### Learning curves
+
+def plot_log_file(path, lim=None):
+    f = open(path, 'r')
+    logs = []
+    for line in f:                                        
+        logs.append([float(x) for x in line.strip().split(',')])
+    logs = np.array(logs)
+    it = logs[:lim, 0]
+    plt.plot(it, logs[:lim,1], label="train error")    
+    plt.plot(it, logs[:lim,2], label="test error")
+    plt.xlabel("iterations")
+    plt.ylabel("loss")
+    plt.legend(loc="best")

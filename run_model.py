@@ -1,6 +1,6 @@
-
 import os, sys, numpy as np
 from scipy import misc
+#import cv2
 import caffe
 import tempfile
 from math import ceil
@@ -29,19 +29,20 @@ def writeFlow(name, flow):
     f.close() 
 
 
-def run_model(prototxt, weights, img0, img1, out, verbose=False):
+def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
 
     if(not os.path.exists(weights)): raise BaseException('caffemodel does not exist: '+weights)
     if(not os.path.exists(prototxt)): raise BaseException('deploy-proto does not exist: '+prototxt)
-    if(not os.path.exists(img0)): raise BaseException('img0 does not exist: '+img0)
-    if(not os.path.exists(img1)): raise BaseException('img1 does not exist: '+img1)
-
+    if(not os.path.exists(img0_p)): raise BaseException('img0 does not exist: '+img0_p)
+    if(not os.path.exists(img1_p)): raise BaseException('img1 does not exist: '+img1_p)
+    
+    print("starting run_model")
     num_blobs = 2
     input_data = []
-    img0 = misc.imread(img0)
+    img0 = misc.imread(img0_p)
     if len(img0.shape) < 3: input_data.append(img0[np.newaxis, np.newaxis, :, :])
     else:                   input_data.append(img0[np.newaxis, :, :, :].transpose(0, 3, 1, 2)[:, [2, 1, 0], :, :])
-    img1 = misc.imread(img1)
+    img1 = misc.imread(img1_p)
     if len(img1.shape) < 3: input_data.append(img1[np.newaxis, np.newaxis, :, :])
     else:                   input_data.append(img1[np.newaxis, :, :, :].transpose(0, 3, 1, 2)[:, [2, 1, 0], :, :])
 
@@ -72,14 +73,19 @@ def run_model(prototxt, weights, img0, img1, out, verbose=False):
 
     if not verbose:
         caffe.set_logging_disabled()
+       
     #caffe.set_device(args.gpu)
+    
     caffe.set_mode_gpu()
+    
     net = caffe.Net(tmp.name, weights, caffe.TEST)
 
     input_dict = {}
     for blob_idx in range(num_blobs):
         input_dict[net.inputs[blob_idx]] = input_data[blob_idx]
-
+    
+   
+    print("coucou")
     #
     # There is some non-deterministic nan-bug in caffe
     # it seems to be a race-condition 
@@ -108,5 +114,5 @@ def run_model(prototxt, weights, img0, img1, out, verbose=False):
 
     blob = np.squeeze(net.blobs['predict_flow_final'].data).transpose(1, 2, 0)
     
-    writeFlow(out, blob)
+    writeFlow(out_p, blob)
 
