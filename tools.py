@@ -5,6 +5,8 @@ import lib.flowlib as optical_flow_lib
 import numpy as np
 import matplotlib.pyplot as plt
 
+from run_model import writeFlow
+
 ## FLOW TOOLS
 
 def open_flow(flow_path):
@@ -128,6 +130,7 @@ def generate_two_images_and_flow(image, dx, dy):
 
 import os
 from os import listdir, makedirs
+import os
 from random import randint, choice
 import numpy as np
 
@@ -146,7 +149,7 @@ def generate_dataset(directory, output_directory, n_images=32):
         image = open_image(directory + path)
         image = cv2.resize(image, None, image, 1.5, 1.5)
         img1, img2, flow = generate_two_images_and_flow(image, dx=choice([-40, 40]), dy=choice([-40, 40]))
-        optical_flow_lib.write_flow(flow, output_directory + image_name + '.flo')
+        writeFlow(output_directory + image_name + '.flo', flow)
         cv2.imwrite(output_directory + image_name + '-1.ppm', img1)
         cv2.imwrite(output_directory + image_name + '-2.ppm', img2)
         list_files += output_directory + image_name + '-1.ppm' + " " + \
@@ -155,18 +158,19 @@ def generate_dataset(directory, output_directory, n_images=32):
 
     with open(output_directory + 'list.txt', 'w') as f:
         f.write(list_files)
+    make_lmdb(os.path.join(output_directory,"list.txt"), os.path.join(output_directory,"data_lmdb"))
         
 import subprocess        
 def make_lmdb(list_path, output_path):
     bash_command = "/home/gpu_user/corentin/flownet2/build/tools/convert_imageset_and_flow.bin %s %s 0 lmdb" % (list_path, output_path)
     print("executing command")
     print(bash_command)
-    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-    while True:
-        line = process.stdout.readline()
-        print(line)
-        if not line: break
-            
+    process = subprocess.check_output(bash_command.split(), stderr=subprocess.STDOUT)
+    #while True:
+    #    line = process.stdout.readline()
+    #    print(line)
+    #    if not line: break
+
 ### TESTING
 
 from run_model import run_model

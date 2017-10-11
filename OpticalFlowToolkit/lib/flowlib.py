@@ -106,6 +106,7 @@ def write_flow(flow, filename):
     :param filename: optical flow file path to be saved
     :return: None
     """
+    print("***WARNING***: flowlib.write_flow doesn't work...")
     f = open(filename, 'wb')
     magic = np.array([202021.25], dtype=np.float32)
     (height, width) = flow.shape[0:2]
