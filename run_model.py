@@ -51,6 +51,7 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     vars = {}
     vars['TARGET_WIDTH'] = width
     vars['TARGET_HEIGHT'] = height
+    print(width, height)
 
     divisor = 64.
     vars['ADAPTED_WIDTH'] = int(ceil(width/divisor) * divisor)
@@ -85,7 +86,6 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
         input_dict[net.inputs[blob_idx]] = input_data[blob_idx]
     
    
-    print("coucou")
     #
     # There is some non-deterministic nan-bug in caffe
     # it seems to be a race-condition 
