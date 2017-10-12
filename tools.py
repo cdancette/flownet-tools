@@ -18,21 +18,13 @@ def open_image(image_path):
 
 def apply_flow_reverse(image, flow):
     h, w = flow.shape[:2]
-    print("    h, w = flow.shape[:2]")
-    print(flow.shape)
-    print(image.shape)
     # openCV coordinates are inversed / numpy
     map_x = flow[:,:,0] + np.arange(w)
     map_x = map_x.astype('float32')
     map_y = flow[:,:,1] + np.arange(h)[:,np.newaxis]
     map_y = map_y.astype('float32')
-    print("pre remap")
-    print(map_x.shape)
-    print(map_y.shape)
-    print(image.shape)
     new_image = cv2.remap(image, map_x, map_y, cv2.INTER_LINEAR)
-    print("remap done")
-    return image
+    return new_image
 
 def apply_flow_reverse_path(second_image_path, incoming_flow_path, output_path):
     second_image = open_image(second_image_path)
@@ -160,7 +152,8 @@ def generate_dataset(directory, output_directory, n_images=32):
         f.write(list_files)
     make_lmdb(os.path.join(output_directory,"list.txt"), os.path.join(output_directory,"data_lmdb"))
         
-import subprocess        
+import subprocess  
+
 def make_lmdb(list_path, output_path):
     bash_command = "/home/gpu_user/corentin/flownet2/build/tools/convert_imageset_and_flow.bin %s %s 0 lmdb" % (list_path, output_path)
     print("executing command")
@@ -186,16 +179,16 @@ def test_model_on_image_pair(prototxt,
     it1 = cv2.imread(img1_p)
     it0 = cv2.imread(img0_p)
    
-    run_model(prototxt, model_weights, img0_p, img1_p, flow_p, verbose=True)
+    run_model(prototxt, model_weights, img0_p, img1_p, flow_p, verbose=False)
     
     flow = optical_flow_lib.read_flo_file(flow_p)    
     expected_it0 = apply_flow_reverse(it1, flow)
-    cv2.imwrite(prefix + "img0-expected.jpg", expected_it0)       
-    
+    cv2.imwrite(prefix + "-img0-expected.jpg", expected_it0)
     cv2.imwrite(prefix + "-img0.jpg", it0)
     cv2.imwrite(prefix + "-img1.jpg", it1)
 
     optical_flow_lib.save_flow_image(flow, prefix + "-flo.png")
+    return flow_p
     
     
 #### Learning curves
