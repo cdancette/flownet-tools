@@ -115,4 +115,132 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     blob = np.squeeze(net.blobs['predict_flow_final'].data).transpose(1, 2, 0)
     
     writeFlow(out_p, blob)
+    
+    
+def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
+    """
+    Input : prototxt, weights
+    listfile : list of (image1, image2, realflow)
+    
+    output_dir : place where the computed flows will be saved
+    outfile : csv file with losses for each image pair will be saved
+    
+    """
+    import os, sys, numpy as np
+    import argparse
+    from scipy import misc
+    import caffe
+    import tempfile
+    from math import ceil
 
+       
+    if(not os.path.exists(weights)): raise BaseException('caffemodel does not exist: '+weights)
+    if(not os.path.exists(prototxt)): raise BaseException('deploy-proto does not exist: '+prototxt)
+    if(not os.path.exists(listfile)): raise BaseException('listfile does not exist: '+listfile)
+
+    def readTupleList(filename):
+        list = []
+        for line in open(filename).readlines():
+            if line.strip() != '':
+                list.append(line.split())
+
+        return list
+
+    ops = readTupleList(listfile)
+
+    width = -1
+    height = -1
+    
+    blobs = ['flow_loss', 'warp_loss']
+    output = []
+    output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
+
+    for i, ent in enumerate(ops):
+        print('Processing tuple:', ent)
+
+        num_blobs = 2
+        input_data = []
+        img0 = misc.imread(ent[0])
+        if len(img0.shape) < 3: input_data.append(img0[np.newaxis, np.newaxis, :, :])
+        else:                   input_data.append(img0[np.newaxis, :, :, :].transpose(0, 3, 1, 2)[:, [2, 1, 0], :, :])
+        img1 = misc.imread(ent[1])
+        if len(img1.shape) < 3: input_data.append(img1[np.newaxis, np.newaxis, :, :])
+        else:                   input_data.append(img1[np.newaxis, :, :, :].transpose(0, 3, 1, 2)[:, [2, 1, 0], :, :])
+
+        if width != input_data[0].shape[3] or height != input_data[0].shape[2]:
+            width = input_data[0].shape[3]
+            height = input_data[0].shape[2]
+
+            vars = {}
+            vars['TARGET_WIDTH'] = width
+            vars['TARGET_HEIGHT'] = height
+
+            divisor = 64.
+            vars['ADAPTED_WIDTH'] = int(ceil(width/divisor) * divisor)
+            vars['ADAPTED_HEIGHT'] = int(ceil(height/divisor) * divisor)
+
+            vars['SCALE_WIDTH'] = width / float(vars['ADAPTED_WIDTH']);
+            vars['SCALE_HEIGHT'] = height / float(vars['ADAPTED_HEIGHT']);
+
+            tmp = tempfile.NamedTemporaryFile(mode='w', delete=False)
+
+            proto = open(prototxt).readlines()
+            for line in proto:
+                for key, value in vars.items():
+                    tag = "$%s$" % key
+                    line = line.replace(tag, str(value))
+
+                tmp.write(line)
+
+            tmp.flush()
+
+        if not args.verbose:
+            caffe.set_logging_disabled()
+        caffe.set_device(args.gpu)
+        caffe.set_mode_gpu()
+        net = caffe.Net(tmp.name, weights, caffe.TEST)
+
+        input_dict = {}
+        for blob_idx in range(num_blobs):
+            input_dict[net.inputs[blob_idx]] = input_data[blob_idx]
+
+        #
+        # There is some non-deterministic nan-bug in caffe
+        #
+        print('Network forward pass using %s.' % weights)
+        i = 1
+        while i<=5:
+            i+=1
+
+            net.forward(**input_dict)
+
+            containsNaN = False
+            for name in net.blobs:
+                blob = net.blobs[name]
+                has_nan = np.isnan(blob.data[...]).any()
+
+                if has_nan:
+                    print('blob %s contains nan' % name)
+                    containsNaN = True
+
+            if not containsNaN:
+                print('Succeeded.')
+                break
+            else:
+                print('**************** FOUND NANs, RETRYING ****************')
+        
+        flow_blob = blob = np.squeeze(net.blobs['predict_flow_final'].data).transpose(1, 2, 0)
+        
+        writeFlow(output_dir +"/flow_%s" % i, blob)
+        out_line = [ent[0], ent[1], ent[2], output_dir +"/flow_%s" % i]
+        for blob in blobs:
+            out_line.append(net.blobs[blob].data)
+            
+        output.append(out_line)
+        
+    with open(outfile, 'w') as f:
+        f.write("\n".join((",".join(line) for line in output)))
+    
+        
+        
+            
