@@ -478,29 +478,29 @@ layer {
 layer {
   name: "Downsample6_1"
   type: "Downsample"
-  bottom: "img1_aug"
+  bottom: "img1_nomean_resize"
   bottom: "predict_flow6"
-  top: "img1_aug_down6"
+  top: "img1_nomean_resize_down6"
 }
 layer {
   name: "FlowWarp6"
   type: "FlowWarp"
-  bottom: "img1_aug_down6"
+  bottom: "img1_nomean_resize_down6"
   bottom: "predict_flow6"
-  top: "img0_aug_pred6"
+  top: "img0_nomean_resize_pred6"
 }
 layer {
   name: "Downsample6_0"
   type: "Downsample"
-  bottom: "img0_aug"
-  bottom: "img0_aug_pred6"
-  top: "img0_aug_down6"
+  bottom: "img0_nomean_resize"
+  bottom: "img0_nomean_resize_pred6"
+  top: "img0_nomean_resize_down6"
 }
 layer {
   name: "warp_loss6"
   type: "EuclideanLoss"
-  bottom: "img0_aug_pred6"
-  bottom: "img0_aug_down6"
+  bottom: "img0_nomean_resize_pred6"
+  bottom: "img0_nomean_resize_down6"
   top: "warp_loss6"
   loss_weight: 0.005
   l1_loss_param {
@@ -626,29 +626,29 @@ layer {
 layer {
   name: "Downsample5_1"
   type: "Downsample"
-  bottom: "img1_aug"
+  bottom: "img1_nomean_resize"
   bottom: "predict_flow5"
-  top: "img1_aug_down5"
+  top: "img1_nomean_resize_down5"
 }
 layer {
   name: "FlowWarp5"
   type: "FlowWarp"
-  bottom: "img1_aug_down5"
+  bottom: "img1_nomean_resize_down5"
   bottom: "predict_flow5"
-  top: "img0_aug_pred5"
+  top: "img0_nomean_resize_pred5"
 }
 layer {
   name: "Downsample5_0"
   type: "Downsample"
-  bottom: "img0_aug"
-  bottom: "img0_aug_pred5"
-  top: "img0_aug_down5"
+  bottom: "img0_nomean_resize"
+  bottom: "img0_nomean_resize_pred5"
+  top: "img0_nomean_resize_down5"
 }
 layer {
   name: "warp_loss5"
   type: "EuclideanLoss"
-  bottom: "img0_aug_pred5"
-  bottom: "img0_aug_down5"
+  bottom: "img0_nomean_resize_pred5"
+  bottom: "img0_nomean_resize_down5"
   top: "warp_loss5"
   loss_weight: 0.005
   l1_loss_param {
@@ -774,29 +774,29 @@ layer {
 layer {
   name: "Downsample4_1"
   type: "Downsample"
-  bottom: "img1_aug"
+  bottom: "img1_nomean_resize"
   bottom: "predict_flow4"
-  top: "img1_aug_down4"
+  top: "img1_nomean_resize_down4"
 }
 layer {
   name: "FlowWarp4"
   type: "FlowWarp"
-  bottom: "img1_aug_down4"
+  bottom: "img1_nomean_resize_down4"
   bottom: "predict_flow4"
-  top: "img0_aug_pred4"
+  top: "img0_nomean_resize_pred4"
 }
 layer {
   name: "Downsample4_0"
   type: "Downsample"
-  bottom: "img0_aug"
-  bottom: "img0_aug_pred4"
-  top: "img0_aug_down4"
+  bottom: "img0_nomean_resize"
+  bottom: "img0_nomean_resize_pred4"
+  top: "img0_nomean_resize_down4"
 }
 layer {
   name: "warp_loss4"
   type: "EuclideanLoss"
-  bottom: "img0_aug_pred4"
-  bottom: "img0_aug_down4"
+  bottom: "img0_nomean_resize_pred4"
+  bottom: "img0_nomean_resize_down4"
   top: "warp_loss4"
   loss_weight: 0.005
   l1_loss_param {
@@ -922,29 +922,29 @@ layer {
 layer {
   name: "Downsample3_1"
   type: "Downsample"
-  bottom: "img1_aug"
+  bottom: "img1_nomean_resize"
   bottom: "predict_flow3"
-  top: "img1_aug_down3"
+  top: "img1_nomean_resize_down3"
 }
 layer {
   name: "FlowWarp3"
   type: "FlowWarp"
-  bottom: "img1_aug_down3"
+  bottom: "img1_nomean_resize_down3"
   bottom: "predict_flow3"
-  top: "img0_aug_pred3"
+  top: "img0_nomean_resize_pred3"
 }
 layer {
   name: "Downsample3_0"
   type: "Downsample"
-  bottom: "img0_aug"
-  bottom: "img0_aug_pred3"
-  top: "img0_aug_down3"
+  bottom: "img0_nomean_resize"
+  bottom: "img0_nomean_resize_pred3"
+  top: "img0_nomean_resize_down3"
 }
 layer {
   name: "warp_loss3"
   type: "EuclideanLoss"
-  bottom: "img0_aug_pred3"
-  bottom: "img0_aug_down3"
+  bottom: "img0_nomean_resize_pred3"
+  bottom: "img0_nomean_resize_down3"
   top: "warp_loss3"
   loss_weight: 0.005
   l1_loss_param {
@@ -1070,29 +1070,29 @@ layer {
 layer {
   name: "Downsample2_1"
   type: "Downsample"
-  bottom: "img1_aug"
+  bottom: "img1_nomean_resize"
   bottom: "predict_flow2"
-  top: "img1_aug_down"
+  top: "img1_nomean_resize_down"
 }
 layer {
   name: "FlowWarp2"
   type: "FlowWarp"
-  bottom: "img1_aug_down"
+  bottom: "img1_nomean_resize_down"
   bottom: "predict_flow2"
-  top: "img0_aug_pred"
+  top: "img0_nomean_resize_pred"
 }
 layer {
   name: "Downsample2_0"
   type: "Downsample"
-  bottom: "img0_aug"
-  bottom: "img0_aug_pred"
-  top: "img0_aug_down"
+  bottom: "img0_nomean_resize"
+  bottom: "img0_nomean_resize_pred"
+  top: "img0_nomean_resize_down"
 }
 layer {
   name: "warp_loss2"
   type: "EuclideanLoss"
-  bottom: "img0_aug_pred"
-  bottom: "img0_aug_down"
+  bottom: "img0_nomean_resize_pred"
+  bottom: "img0_nomean_resize_down"
   top: "warp_loss2"
   loss_weight: 0.005
   l1_loss_param {
@@ -1126,21 +1126,6 @@ layer {
     operation: SUM
     coeff: 20.0
   }
-}
-layer {
-  name: "Silence1"
-  type: "Silence"
-  bottom: "blob0"
-}
-layer {
-  name: "Silence2"
-  type: "Silence"
-  bottom: "blob1"
-}
-layer {
-  name: "Silence3"
-  type: "Silence"
-  bottom: "blob2"
 }
 layer {
   name: "Silence4"
