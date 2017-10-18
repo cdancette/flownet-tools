@@ -1,5 +1,6 @@
 input: "img0"
 input: "img1"
+input: "flow"
 input_shape {
   dim: 1
   dim: 3
@@ -9,6 +10,12 @@ input_shape {
 input_shape {
   dim: 1
   dim: 3
+  dim: $TARGET_HEIGHT$
+  dim: $TARGET_WIDTH$
+}
+input_shape {
+  dim: 1
+  dim: 2
   dim: $TARGET_HEIGHT$
   dim: $TARGET_WIDTH$
 }
@@ -76,6 +83,16 @@ layer {
     height: $ADAPTED_HEIGHT$
     type: LINEAR
     antialias: true
+  }
+}
+layer {
+  name: "Eltwise3"
+  type: "Eltwise"
+  bottom: "flow"
+  top: "scaled_flow_gt"
+  eltwise_param {
+    operation: SUM
+    coeff: 0.05
   }
 }
 layer {
