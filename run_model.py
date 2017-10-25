@@ -124,7 +124,6 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
     
     output_dir : place where the computed flows will be saved
     outfile : csv file with losses for each image pair will be saved
-    
     """
     import os, sys, numpy as np
     import argparse
@@ -204,7 +203,7 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
         for blob_idx in range(num_blobs):
             input_dict[net.inputs[blob_idx]] = input_data[blob_idx]
 
-        #
+        #input_data
         # There is some non-deterministic nan-bug in caffe
         #
         print('Network forward pass using %s.' % weights)
@@ -244,3 +243,48 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
         
         
             
+def run_model_lmdb(prototxt, weights, blobs=['flow_loss', 'warp_loss'], output_dir, save_input=False):
+
+    net = caffe.Net(prototxt, weights, caffe.TEST)
+
+    batch_size = 8
+
+    num_inputs = 100
+
+    iterations = num_inputs / batch_size
+
+    output = []
+    if save_input:
+        output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
+    else:
+        output.append(['real_flow', 'estimated_flow'] + blobs)
+
+    while i in range(iterations):
+        net.forward()
+        imgs0 = solver.net.blobs["blob0"].data.copy()
+        imgs1 = solver.net.blobs["blob1"].data.copy()
+        flows = solver.net.blobs["blob2"].data.copy()
+
+        losses = {loss: solver.net.blobs[loss] for loss in blobs}
+
+        for b in range(batch_size):
+            out_line = []
+            current_id = i * batch_size + b
+            flow = np.squeeze(flows[b]).transpose(1, 2, 0)
+            flow_path = output_dir + "/predict_flow_%s" % current_id
+            writeFlow(flow_path, flow)
+
+            # if save_input:
+            #     img0 = 
+
+            out_line.append(flow_path)
+            for l in losses:
+                out_line.append(losses[l][b])
+
+  with open(output_dir + '/losses.txt', 'w') as f:
+        f.write("\n".join((",".join(line) for line in output)))
+    
+
+
+
+

@@ -9,14 +9,14 @@ layer {
     phase: TRAIN
   }
   data_param {
-    # THIS IS ONLY AN EXAMPLE:
-    # replace the following lines with the dataset you really want to use:
-    source: "/home/gpu_user/corentin/training_set/data_lmdb"
-    batch_size: 8
-    backend: LMDB
-    preselection_label: 1
-    rand_permute: true
-    rand_permute_seed: 77
+#    # THIS IS ONLY AN EXAMPLE:
+#    # replace the following lines with the dataset you really want to use:
+#    source: "/home/gpu_user/corentin/training_set/data_lmdb"
+#    batch_size: 8
+#    backend: LMDB
+#    preselection_label: 1
+#    rand_permute: true
+#    rand_permute_seed: 77
     slice_point: 3
     slice_point: 6
     slice_point: 8
@@ -24,7 +24,7 @@ layer {
     encoding: UINT8
     encoding: UINT16FLOW
     encoding: BOOL1
-    verbose: true
+#    verbose: true
   }
 }
 layer {
@@ -38,14 +38,14 @@ layer {
     phase: TEST
   }
   data_param {
-    # THIS IS ONLY AN EXAMPLE:
-    # replace the following lines with the dataset you really want to use:
-    source: "/home/gpu_user/corentin/testing_set/data_lmdb"
-    batch_size: 8
-    backend: LMDB
-    preselection_label: 2
-    rand_permute: true
-    rand_permute_seed: 77
+#    # THIS IS ONLY AN EXAMPLE:
+#    # replace the following lines with the dataset you really want to use:
+#    source: "/home/gpu_user/corentin/testing_set/data_lmdb"
+#    batch_size: 8
+#    backend: LMDB
+#    preselection_label: 2
+#    rand_permute: true
+#    rand_permute_seed: 77
     slice_point: 3
     slice_point: 6
     slice_point: 8
@@ -53,7 +53,7 @@ layer {
     encoding: UINT8
     encoding: UINT16FLOW
     encoding: BOOL1
-    verbose: true
+#    verbose: true
   }
 }
 layer {

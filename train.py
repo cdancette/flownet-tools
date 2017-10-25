@@ -114,7 +114,6 @@ def run_solvers(niter, solvers, disp_interval=10, log_file=None, test_interval=2
     return loss, test_loss, weights
 
 
-import cv2
 from matplotlib import pyplot as plt
 
 def deprocess_net_image(image):

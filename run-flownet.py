@@ -10,7 +10,6 @@ import tempfile
 from math import ceil
 
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('caffemodel', help='path to model')
 parser.add_argument('deployproto', help='path to deploy prototxt template')
