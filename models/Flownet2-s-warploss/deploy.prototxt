@@ -1,5 +1,5 @@
-input: "img0"
-input: "img1"
+input: "blob0"
+input: "blob1"
 input_shape {
   dim: 1
   dim: 3
@@ -295,7 +295,7 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 64
+    num_output: 24
     pad: 3
     kernel_size: 7
     stride: 2
@@ -690,11 +690,11 @@ layer {
   top: "img0_aug_down6"
 }
 layer {
-  name: "flow_loss6"
+  name: "warp_loss6"
   type: "EuclideanLoss"
   bottom: "img0_aug_pred6"
   bottom: "img0_aug_down6"
-  top: "flow_loss6"
+  top: "warp_loss6"
   loss_weight: 0.005
   l1_loss_param {
     l2_per_location: true
@@ -820,11 +820,11 @@ layer {
   top: "img0_aug_down5"
 }
 layer {
-  name: "flow_loss5"
+  name: "warp_loss5"
   type: "EuclideanLoss"
   bottom: "img0_aug_pred5"
   bottom: "img0_aug_down5"
-  top: "flow_loss5"
+  top: "warp_loss5"
   loss_weight: 0.005
   l1_loss_param {
     l2_per_location: true
@@ -950,11 +950,11 @@ layer {
   top: "img0_aug_down4"
 }
 layer {
-  name: "flow_loss4"
+  name: "warp_loss4"
   type: "EuclideanLoss"
   bottom: "img0_aug_pred4"
   bottom: "img0_aug_down4"
-  top: "flow_loss4"
+  top: "warp_loss4"
   loss_weight: 0.005
   l1_loss_param {
     l2_per_location: true
@@ -1080,11 +1080,11 @@ layer {
   top: "img0_aug_down3"
 }
 layer {
-  name: "flow_loss3"
+  name: "warp_loss3"
   type: "EuclideanLoss"
   bottom: "img0_aug_pred3"
   bottom: "img0_aug_down3"
-  top: "flow_loss3"
+  top: "warp_loss3"
   loss_weight: 0.005
   l1_loss_param {
     l2_per_location: true
@@ -1210,11 +1210,11 @@ layer {
   top: "img0_aug_down"
 }
 layer {
-  name: "flow_loss2"
+  name: "warp_loss2"
   type: "EuclideanLoss"
   bottom: "img0_aug_pred"
   bottom: "img0_aug_down"
-  top: "flow_loss2"
+  top: "warp_loss2"
   loss_weight: 0.005
   l1_loss_param {
     l2_per_location: true
@@ -1240,11 +1240,7 @@ layer {
   type: "Silence"
   bottom: "blob1"
 }
-layer {
-  name: "Silence3"
-  type: "Silence"
-  bottom: "blob2"
-}
+
 layer {
   name: "Silence4"
   type: "Silence"

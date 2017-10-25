@@ -4,6 +4,7 @@ from scipy import misc
 import caffe
 import tempfile
 from math import ceil
+flush = sys.stdout.flush
 
 def readFlow(name):
     f = open(name, 'rb')
@@ -117,13 +118,16 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     writeFlow(out_p, blob)
     
     
-def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
+def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2']):
     """
     Input : prototxt, weights
-    listfile : list of (image1, image2, realflow)
+    listfile : list of (image1, image2)
     
     output_dir : place where the computed flows will be saved
     outfile : csv file with losses for each image pair will be saved
+    
+        Call this function with a prototxt that work without LMDB, and that has only two images in input
+    
     """
     import os, sys, numpy as np
     import argparse
@@ -150,11 +154,12 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
     width = -1
     height = -1
     
-    blobs = ['flow_loss', 'warp_loss']
     output = []
     output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
 
     for i, ent in enumerate(ops):
+        print("processing", i)
+        flush()
         print('Processing tuple:', ent)
 
         num_blobs = 2
@@ -193,9 +198,7 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
 
             tmp.flush()
 
-        if not args.verbose:
-            caffe.set_logging_disabled()
-        caffe.set_device(args.gpu)
+        caffe.set_logging_disabled()
         caffe.set_mode_gpu()
         net = caffe.Net(tmp.name, weights, caffe.TEST)
 
@@ -237,35 +240,37 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, outfile):
             
         output.append(out_line)
         
-    with open(outfile, 'w') as f:
+    with open(output_dir + '/list_out.txt', 'w') as f:
         f.write("\n".join((",".join(line) for line in output)))
     
         
         
             
-def run_model_lmdb(prototxt, weights, blobs=['flow_loss', 'warp_loss'], output_dir, save_input=False):
+def run_model_lmdb(prototxt, weights, output_dir, blobs=['flow_loss', 'warp_loss'], batch_size=1, 
+                   num_inputs=100, save_input=False):
+    caffe.set_mode_gpu()
 
+    print("loading network")
     net = caffe.Net(prototxt, weights, caffe.TEST)
-
-    batch_size = 8
-
-    num_inputs = 100
+    print("done loading network")
 
     iterations = num_inputs / batch_size
-
+    
     output = []
     if save_input:
         output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
     else:
         output.append(['real_flow', 'estimated_flow'] + blobs)
 
-    while i in range(iterations):
+    for i in range(iterations):
+        print("iteration", i)
+        flush()
         net.forward()
-        imgs0 = solver.net.blobs["blob0"].data.copy()
-        imgs1 = solver.net.blobs["blob1"].data.copy()
-        flows = solver.net.blobs["blob2"].data.copy()
+        imgs0 = net.blobs["blob0"].data.copy()
+        imgs1 = net.blobs["blob1"].data.copy()
+        flows = net.blobs["blob2"].data.copy()
 
-        losses = {loss: solver.net.blobs[loss] for loss in blobs}
+        losses = {loss: net.blobs[loss].data for loss in blobs}
 
         for b in range(batch_size):
             out_line = []
@@ -279,12 +284,10 @@ def run_model_lmdb(prototxt, weights, blobs=['flow_loss', 'warp_loss'], output_d
 
             out_line.append(flow_path)
             for l in losses:
-                out_line.append(losses[l][b])
+                out_line.append(str(losses[l] / batch_size))
+        output.append(out_line)
 
-  with open(output_dir + '/losses.txt', 'w') as f:
+    with open(output_dir + '/losses.txt', 'w') as f:
         f.write("\n".join((",".join(line) for line in output)))
     
-
-
-
 
