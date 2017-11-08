@@ -121,7 +121,7 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     writeFlow(out_p, blob)
     
     
-def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False):
+def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False, start=0):
     """
     Input : prototxt, weights
     listfile : list of (image1, image2)
@@ -160,7 +160,7 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
     output = []
     output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
     n = len(ops)
-    for i, ent in enumerate(ops):
+    for i, ent in list(enumerate(ops))[start:]:
         print("processing", i)
         flush()
         print('Processing tuple:', ent)

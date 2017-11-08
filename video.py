@@ -2,7 +2,7 @@ from run_model import run_model_multiples
 import tempfile
 
 
-def make_video(prototxt, weights, input_list_file, output_folder):
+def make_video(prototxt, weights, input_list_file, output_folder, start=0):
 	"""
 	input_list_file : list of photo paths
 	
@@ -18,7 +18,7 @@ def make_video(prototxt, weights, input_list_file, output_folder):
 	f = tempfile.NamedTemporaryFile(delete=False)
 	f.write("\n".join(photo_pairs))
 	f.close()
-	run_model_multiples(prototxt, weights, f.name, output_folder, blobs=[], save_image=True)
+	run_model_multiples(prototxt, weights, f.name, output_folder, blobs=[], save_image=True, start=start)
 
 
 

@@ -17,7 +17,7 @@ def call_run_multiples(parser):
 
 
 def call_video(parser):
-    make_video(parser.prototxt, parser.weights, parser.listfile, parser.output_dir)
+    make_video(parser.prototxt, parser.weights, parser.listfile, parser.output_dir, parser.start)
 
 def main():
     parser = argparse.ArgumentParser(description='Use flownet 2')
@@ -55,7 +55,8 @@ def main():
     parser_video.add_argument('weights')
     parser_video.add_argument('listfile')
     parser_video.add_argument('output_dir')
-
+    parser_video.add_argument('--start', type=int, default=0, help='start at image')
+    
     parser_video.set_defaults(func=call_video)
     args = parser.parse_args()
     args.func(args)
