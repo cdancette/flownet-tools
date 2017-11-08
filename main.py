@@ -4,7 +4,7 @@ import argparse
 from run_model import run_model, run_model_multiples, run_model_lmdb
 
 def call_train(parser):    
-    train(parser.prototxt, parser.input_weights, parser.output_weights, parser.iterations, 
+    train(parser.prototxt, parser.input_weights, parser.output_weights, int(parser.iterations), 
           solver=None, disp_interval=10, log_file=parser.log_file)
     
 def call_run(parser):

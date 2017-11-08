@@ -5,9 +5,18 @@ import lib.flowlib as optical_flow_lib
 import numpy as np
 import matplotlib.pyplot as plt
 
-from run_model import writeFlow
 
 ## FLOW TOOLS
+
+def writeFlow(name, flow):
+    f = open(name, 'wb')
+    f.write('PIEH'.encode('utf-8'))
+    np.array([flow.shape[1], flow.shape[0]], dtype=np.int32).tofile(f)
+    flow = flow.astype(np.float32)
+    flow.tofile(f)
+    f.flush()
+    f.close() 
+
 
 def open_flow(flow_path):
     return optical_flow_lib.read_flo_file(flow_path)
@@ -127,18 +136,23 @@ from random import randint, choice
 import numpy as np
 
 def generate_dataset(directory, output_directory, n_images=32):
-    images = listdir(directory)
+    image_paths = []
+    folders = listdir(directory)
+    for folder in folders:
+	image_paths += [folder + "/" + path for path in listdir(directory + "/" + folder)]
     list_files = ""
     makedirs(output_directory)
     i = 0
-    for path in images:
+    for path in image_paths:
+        print(path)
         if i == n_images:
             break
         i += 1
         if not os.path.isfile(os.path.join(directory, path)):
             continue
-        image_name = path.split('.')[0]
+        image_name = path.split('.')[0].replace("/", "-")
         image = open_image(directory + path)
+        print(image.shape)
         image = cv2.resize(image, None, image, 1.5, 1.5)
         img1, img2, flow = generate_two_images_and_flow(image, dx=choice([-40, 40]), dy=choice([-40, 40]))
         writeFlow(output_directory + image_name + '.flo', flow)
@@ -155,7 +169,7 @@ def generate_dataset(directory, output_directory, n_images=32):
 import subprocess  
 
 def make_lmdb(list_path, output_path):
-    bash_command = "/home/gpu_user/corentin/flownet2/build/tools/convert_imageset_and_flow.bin %s %s 0 lmdb" % (list_path, output_path)
+    bash_command = "/opt/flownet2/build/tools/convert_imageset_and_flow.bin %s %s 0 lmdb" % (list_path, output_path)
     print("executing command")
     print(bash_command)
     process = subprocess.check_output(bash_command.split(), stderr=subprocess.STDOUT)
@@ -191,17 +205,3 @@ def test_model_on_image_pair(prototxt,
     return flow_p
     
     
-#### Learning curves
-
-def plot_log_file(path, lim=None):
-    f = open(path, 'r')
-    logs = []
-    for line in f:                                        
-        logs.append([float(x) for x in line.strip().split(',')])
-    logs = np.array(logs)
-    it = logs[:lim, 0]
-    plt.plot(it, logs[:lim,1], label="train error")    
-    plt.plot(it, logs[:lim,2], label="test error")
-    plt.xlabel("iterations")
-    plt.ylabel("loss")
-    plt.legend(loc="best")

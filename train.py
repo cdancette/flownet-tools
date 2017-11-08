@@ -9,8 +9,6 @@ caffe_root = "/home/gpu_user/corentin/flownet2/"
 import sys
 flush = sys.stdout.flush
 
-
-
 def create_solver(train_net_path, snapshot_prefix=None, test_net_path=None, base_lr=0.00001):
     s = caffe_pb2.SolverParameter()
 
@@ -79,27 +77,29 @@ def run_solvers(niter, solvers, disp_interval=10, log_file=None, test_interval=2
             log = open(log_file + '_' + name + '-' + time.strftime('%Y-%m-%d-%H:%M:%S'), 'a')
             logs[name] = log
         
-    blobs = ('flow_loss2',)
+    blobs = ('net2_flow_loss2', 'net2_flow_loss3', 'net2_flow_loss4', 'net2_flow_loss5', 'net2_flow_loss6')
     loss = [{name: np.zeros(niter) for name, _ in solvers}
-                 for _ in blobs][0]
+                 for _ in blobs]
     test_loss = [{name: np.zeros(niter) for name, _ in solvers}
-                 for _ in blobs][0]
+                 for _ in blobs]
     for it in range(niter):
         for name, s in solvers:
             s.step(1)  # run a single step in Caffe
-            (loss[name][it],) = (s.net.blobs[b].data.copy() for b in blobs)
+	    for i, blob in enumerate(blobs):
+                loss[i][name][it] = s.net.blobs[blob].data.copy() 
             ## TEST 
             if it % test_interval == 0 or it == niter - 1:
                 correct = 0
                 mean_loss = 0
                 s.test_nets[0].forward()
-                test_loss[name][it] = s.test_nets[0].blobs['flow_loss2'].data
+		for i, b in enumerate(blobs):
+	                test_loss[i][name][it] = s.test_nets[0].blobs[blob].data
                 if log_file:
                     for b in blobs:
-                        logs[name].write("%s,%s,%s\n" % (it, str(loss[name][it]), test_loss[name][it])) 
+                        logs[name].write("%s,%s,%s\n" % (it, ','.join(str(loss[i][name][it]) for i, b in enumerate(blobs)), ','.join(str(test_loss[i][name][it]) for i, b in enumerate(blobs)))) 
                         logs[name].flush()
             # DONE TESTING
-                loss_disp = '; '.join('%s: loss=%.2f, test_loss=%.2f' % (n, loss[n][it],test_loss[n][it]) for n, _ in solvers)
+                loss_disp = '; '.join('%s: loss=%.2f, test_loss=%.2f' % (n, loss[0][n][it],test_loss[0][n][it]) for n, _ in solvers)
                 print '%3d) %s' % (it, loss_disp)
                 flush()
                 
