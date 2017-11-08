@@ -5,6 +5,9 @@ import caffe
 import tempfile
 from math import ceil
 flush = sys.stdout.flush
+sys.path.append("OpticalFlowToolkit/")
+
+from lib.flowlib import save_flow_image
 
 def readFlow(name):
     f = open(name, 'rb')
@@ -118,7 +121,7 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     writeFlow(out_p, blob)
     
     
-def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2']):
+def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False):
     """
     Input : prototxt, weights
     listfile : list of (image1, image2)
@@ -156,7 +159,7 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
     
     output = []
     output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
-
+    n = len(ops)
     for i, ent in enumerate(ops):
         print("processing", i)
         flush()
@@ -210,9 +213,9 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
         # There is some non-deterministic nan-bug in caffe
         #
         print('Network forward pass using %s.' % weights)
-        i = 1
-        while i<=5:
-            i+=1
+        j = 1
+        while j<=5:
+            j+=1
 
             net.forward(**input_dict)
 
@@ -231,10 +234,13 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
             else:
                 print('**************** FOUND NANs, RETRYING ****************')
         
-        flow_blob = blob = np.squeeze(net.blobs['predict_flow_final'].data).transpose(1, 2, 0)
-        
-        writeFlow(output_dir +"/flow_%s" % i, blob)
-        out_line = [ent[0], ent[1], ent[2], output_dir +"/flow_%s" % i]
+        flow_blob = np.squeeze(net.blobs['predict_flow_final'].data).transpose(1, 2, 0)
+        output_flow_file = output_dir + "flow_%04d" % i
+        print("saving flow at %s" % output_flow_file)
+        if save_image:
+            save_flow_image(flow_blob, output_flow_file + ".png")
+        writeFlow(output_flow_file + ".flo", flow_blob)
+        out_line = [ent[0], ent[1], output_flow_file]
         for blob in blobs:
             out_line.append(net.blobs[blob].data)
             
