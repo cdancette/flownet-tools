@@ -7,7 +7,7 @@ from math import ceil
 flush = sys.stdout.flush
 sys.path.append("OpticalFlowToolkit/")
 
-from lib.flowlib import save_flow_image
+from lib.flowlib import save_flow_image, read_flow
 
 def readFlow(name):
     f = open(name, 'rb')
@@ -121,7 +121,7 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     writeFlow(out_p, blob)
     
     
-def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False, start=0):
+def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False, start=0, flow_loss=False):
     """
     Input : prototxt, weights
     listfile : list of (image1, image2)
@@ -156,16 +156,22 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
 
     width = -1
     height = -1
-    
+
     output = []
     output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
     n = len(ops)
+
+    output_file = open(output_dir + '/list_out.txt', 'w')
+
     for i, ent in list(enumerate(ops))[start:]:
         print("processing", i)
         flush()
         print('Processing tuple:', ent)
 
         num_blobs = 2
+        if flow_loss:
+            num_blobs = 3
+
         input_data = []
         img0 = misc.imread(ent[0])
         if len(img0.shape) < 3: input_data.append(img0[np.newaxis, np.newaxis, :, :])
@@ -173,6 +179,10 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
         img1 = misc.imread(ent[1])
         if len(img1.shape) < 3: input_data.append(img1[np.newaxis, np.newaxis, :, :])
         else:                   input_data.append(img1[np.newaxis, :, :, :].transpose(0, 3, 1, 2)[:, [2, 1, 0], :, :])
+
+        if flow_loss:
+            flow = readFlow(ent[2])
+            input_data.append(flow[np.newaxis, :, :, :].transpose(0, 3, 1, 2))
 
         if width != input_data[0].shape[3] or height != input_data[0].shape[2]:
             width = input_data[0].shape[3]
@@ -204,6 +214,11 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
         caffe.set_logging_disabled()
         caffe.set_mode_gpu()
         net = caffe.Net(tmp.name, weights, caffe.TEST)
+        blobs = net.outputs
+        print("blobs", blobs)
+        flush()
+        if i == 0:
+            output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
 
         input_dict = {}
         for blob_idx in range(num_blobs):
@@ -242,13 +257,14 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
         writeFlow(output_flow_file + ".flo", flow_blob)
         out_line = [ent[0], ent[1], output_flow_file]
         for blob in blobs:
-            out_line.append(net.blobs[blob].data)
+            out_line.append(str(net.blobs[blob].data))
             
         output.append(out_line)
-        
-    with open(output_dir + '/list_out.txt', 'w') as f:
-        f.write("\n".join((",".join(line) for line in output)))
-    
+        print(out_line)
+
+        output_file.write(",".join(out_line))
+        output_file.write("\n")
+        output_file.flush()
         
         
             
@@ -292,8 +308,4 @@ def run_model_lmdb(prototxt, weights, output_dir, blobs=['flow_loss', 'warp_loss
             for l in losses:
                 out_line.append(str(losses[l] / batch_size))
         output.append(out_line)
-
-    with open(output_dir + '/losses.txt', 'w') as f:
-        f.write("\n".join((",".join(line) for line in output)))
-    
 

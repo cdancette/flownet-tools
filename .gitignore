@@ -1,2 +1,5 @@
 *.pyc
 .ipynb_checkpoints/
+*.flo
+*.png
+*.jpg

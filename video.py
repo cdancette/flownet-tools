@@ -20,6 +20,3 @@ def make_video(prototxt, weights, input_list_file, output_folder, start=0):
 	f.close()
 	run_model_multiples(prototxt, weights, f.name, output_folder, blobs=[], save_image=True, start=start)
 
-
-
-

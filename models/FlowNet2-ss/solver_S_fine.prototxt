@@ -12,7 +12,7 @@ momentum: 0.9
 weight_decay: 0.0004
 max_iter:  500000
 snapshot: 5000
-snapshot_prefix: "flownet2-ss"
+snapshot_prefix: "Finetune-ss/flownet2-ss"
 solver_mode: GPU
 solver_type: ADAM
 momentum2: 0.999

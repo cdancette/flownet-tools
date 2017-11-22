@@ -15,8 +15,7 @@ def writeFlow(name, flow):
     flow = flow.astype(np.float32)
     flow.tofile(f)
     f.flush()
-    f.close() 
-
+    f.close()
 
 def open_flow(flow_path):
     return optical_flow_lib.read_flo_file(flow_path)
@@ -134,6 +133,37 @@ from os import listdir, makedirs
 import os
 from random import randint, choice
 import numpy as np
+
+def generate_dataset_simple(directory, output_directory, n_images=32):
+    files = listdir(directory)
+    image_paths = [directory + "/" + file for file in files]
+    list_files = ""
+    makedirs(output_directory)
+    i = 0
+    for path in image_paths:
+        print(path)
+        if i == n_images:
+            break
+        i += 1
+        if not os.path.isfile(os.path.join(path)):
+            continue
+        image_name = path.split('/')[-1].split('.')[0]
+        print(image_name)
+        image = open_image(path)
+        print(image.shape)
+        image = cv2.resize(image, None, image, 1.5, 1.5)
+        img1, img2, flow = generate_two_images_and_flow(image, dx=choice([-40, 40]), dy=choice([-40, 40]))
+        writeFlow(output_directory + image_name + '.flo', flow)
+        cv2.imwrite(output_directory + image_name + '-1.ppm', img1)
+        cv2.imwrite(output_directory + image_name + '-2.ppm', img2)
+        list_files += output_directory + image_name + '-1.ppm' + " " + \
+            output_directory + image_name + '-2.ppm' + " "  + \
+            output_directory + image_name + '.flo' + "\n"
+
+    with open(output_directory + 'list.txt', 'w') as f:
+        f.write(list_files)
+    make_lmdb(os.path.join(output_directory,"list.txt"), os.path.join(output_directory,"data_lmdb"))
+
 
 def generate_dataset(directory, output_directory, n_images=32):
     image_paths = []
