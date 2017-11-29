@@ -2,9 +2,9 @@ from run_model import run_model_multiples
 import tempfile
 
 
-def make_video(prototxt, weights, input_list_file, output_folder, start=0):
+def make_consecutive(prototxt, weights, input_list_file, output_folder, start=0):
 	"""
-	input_list_file : list of photo paths
+	input_list_file : list of photos (consecutive)
 	
 	"""
 	
@@ -18,5 +18,5 @@ def make_video(prototxt, weights, input_list_file, output_folder, start=0):
 	f = tempfile.NamedTemporaryFile(delete=False)
 	f.write("\n".join(photo_pairs))
 	f.close()
-	run_model_multiples(prototxt, weights, f.name, output_folder, blobs=[], save_image=True, start=start)
+	run_model_multiples(prototxt, weights, f.name, output_folder, blobs=[], save_image=True, start=start, save_warp=True)
 

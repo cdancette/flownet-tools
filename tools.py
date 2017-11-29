@@ -210,10 +210,10 @@ def make_lmdb(list_path, output_path):
 
 ### TESTING
 
-from run_model import run_model
 
 def test_model_on_image_pair(prototxt,
               model_weights, img0_p, img1_p, prefix):
+    from run_model import run_model
     """
     img0_p, img1_p : paths
     prefix : path where the output files will be saved (flow, and expected image)

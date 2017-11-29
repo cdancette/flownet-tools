@@ -24,7 +24,7 @@ def build_calibration_matrices(i, prev_sensor, K_matrices, filename1, filename2)
 
     def get_sensor_sizes(i, prev_sensor, metadata1, metadata2):
         '''Looks up sensor width from the database based on the camera model.'''
-        focal length in pixels = (image width in pixels) * (focal length in mm) / (CCD width in mm)
+        #focal length in pixels = (image width in pixels) * (focal length in mm) / (CCD width in mm)
         if i == 0:
             sensor_1 = cam_db.get_sensor_size(metadata1['Exif.Image.Model'].strip().upper())
             sensor_2 = cam_db.get_sensor_size(metadata2['Exif.Image.Model'].strip().upper())
@@ -46,8 +46,8 @@ def build_calibration_matrices(i, prev_sensor, K_matrices, filename1, filename2)
 
 
     # CDANCETTE : Fix sensor size at 30mm
-    sensor_1, sensor_2 = 30, 30
-    focal = 50 # 50mm
+    sensor_1, sensor_2 = 6.35, 6.35
+    focal = 50 #3.8 # 50mm
     # CDANCETTE
 
     # Calibration matrix for camera 1 (K1)
@@ -218,13 +218,16 @@ def get_colours(img1, K_matrices, norm_pts1, norm_pts2):
     # get the original x and y image coords
     norm_pts1 = np.array([ pt[0] for pt in norm_pts1 ])
     norm_pts1 = np.vstack((norm_pts1.T, np.ones(norm_pts1.shape[0])))
-    img1_pts = np.dot(K1, norm_pts1).T
+    img1_pts = np.dot(K1, norm_pts1).T.astype('int')
     norm_pts2 = np.array([ pt[0] for pt in norm_pts2 ])
     norm_pts2 = np.vstack((norm_pts2.T, np.ones(norm_pts2.shape[0])))
-    img2_pts = np.dot(K2, norm_pts2).T
-
+    img2_pts = np.dot(K2, norm_pts2).T.astype('int')
+    
+    print(img1_pts)
+    
+    
     # extract RGB information from first image and store in new arrays with the coordinates
-    img_colours = np.array([ img1[ pt[1] ][ pt[0] ] for pt in img1_pts ])
+    img_colours = np.array([ img1[ pt[1] ][ pt[0] ] for pt in img1_pts.astype('int') ])
 
     return img1_pts, img2_pts, img_colours
 

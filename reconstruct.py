@@ -3,9 +3,25 @@ import numpy as np
 # import draw, display_vtk
 from processing import *
 # from rich_features import *
-# from optical_flow import *
+from optical_flow import *
 
-def gen_pt_cloud(i, prev_sensor, K_matrices, image1, image2, poses, choice):
+
+def readFlow(name):
+    f = open(name, 'rb')
+
+    header = f.read(4)
+    if header.decode("utf-8") != 'PIEH':
+        raise Exception('Flow file header does not contain PIEH')
+
+    width = np.fromfile(f, np.int32, 1).squeeze()
+    height = np.fromfile(f, np.int32, 1).squeeze()
+
+    flow = np.fromfile(f, np.float32, width * height * 2).reshape((height, width, 2))
+
+    return flow.astype(np.float32)
+
+
+def gen_pt_cloud(i, prev_sensor, K_matrices, image1, image2, poses, choice, flow=None):
     '''Generates a point cloud for a pair of images.'''
     print "    Loading images..."
     img1, img2 = load_images(image1, image2)
@@ -43,11 +59,14 @@ def gen_pt_cloud(i, prev_sensor, K_matrices, image1, image2, poses, choice):
 
     # use Farneback's dense optical flow tracking to compute point correspondences
     elif choice == 'flow':
-        while img1.shape[0] > 700 or img1.shape[1] > 700:
-            img1, img2 = downsample_images(img1, img2)
-            img1_gray, img2_gray = gray_downsampled(img1, img2)
+        #while img1.shape[0] > 700 or img1.shape[1] > 700:
+        #    img1, img2 = downsample_images(img1, img2)
+        #    img1_gray, img2_gray = gray_downsampled(img1, img2)
         print "    Calculating optical flow..."
-        flow = calc_flow(img1_gray, img2_gray)
+        if flow is None:
+            flow = calc_flow(img1_gray, img2_gray)
+        else:
+            flow = readFlow(flow)
         print "    Matching pixel coordinates..."
         src_pts, dst_pts = match_points(img2_gray, flow)
         norm_pts1, norm_pts2 = normalize_points(K_matrices, src_pts, dst_pts)
@@ -113,7 +132,7 @@ def find_new_pts_feat(i, prev_sensor, K_matrices, image1, image2, prev_dst, pose
     return sensor_i, K_matrices, dst_pts, poses, homog_3D, pts_3D, img_colours, pt_cloud_indexed
 
 
-def find_new_pts_flow(i, prev_sensor, K_matrices, image1, image2, poses, pt_cloud_indexed):
+def find_new_pts_flow(i, prev_sensor, K_matrices, image1, image2, poses, pt_cloud_indexed, flow=None):
     print "    Loading images..."
     img1, img2 = load_images(image1, image2)
     while img1.shape[0] > 700 or img1.shape[1] > 700:
@@ -123,7 +142,10 @@ def find_new_pts_flow(i, prev_sensor, K_matrices, image1, image2, poses, pt_clou
     sensor_i, K_matrices = build_calibration_matrices(i, prev_sensor, K_matrices, image1, image2)
 
     print "    Calculating optical flow..."
-    flow = calc_flow(img1_gray, img2_gray)
+    if flow is None:
+        flow = calc_flow(img1_gray, img2_gray)
+    else:
+        flow = readFlow(flow)
     print "    Matching pixel coordinates..."
     src_pts, dst_pts = match_points(img2_gray, flow)
     norm_pts1, norm_pts2 = normalize_points(K_matrices, src_pts, dst_pts)
@@ -151,7 +173,7 @@ def find_new_pts_flow(i, prev_sensor, K_matrices, image1, image2, poses, pt_clou
     return sensor_i, K_matrices, poses, homog_3D, pts_3D, img_colours, pt_cloud_indexed
 
 
-def start(choice, images, file_path=None):
+def start(choice, images, file_path=None, flows=None):
     '''Loop through each pair of images, find point correspondences and generate 3D point cloud.
     For each new frame, find additional points and add them to the overall point cloud.'''
     prev_sensor = 0
@@ -181,11 +203,11 @@ def start(choice, images, file_path=None):
         elif choice == 'flow':
             if i == 0:
                 # first 2 frames
-                prev_sensor, K_matrices, homog_3D, pts_3D, img_colours, pt_cloud_indexed = gen_pt_cloud(i, prev_sensor, K_matrices, images[i], images[i+1], poses, choice)
+                prev_sensor, K_matrices, homog_3D, pts_3D, img_colours, pt_cloud_indexed = gen_pt_cloud(i, prev_sensor, K_matrices, images[i], images[i+1], poses, choice, flow=flows[i])
                 pt_cloud = np.array(pts_3D)
                 colours = np.array(img_colours)
             elif i >= 1:
-                prev_sensor, K_matrices, poses, homog_3D, pts_3D, img_colours, pt_cloud_indexed = find_new_pts_flow(i, prev_sensor, K_matrices, images[i], images[i+1], poses, pt_cloud_indexed)
+                prev_sensor, K_matrices, poses, homog_3D, pts_3D, img_colours, pt_cloud_indexed = find_new_pts_flow(i, prev_sensor, K_matrices, images[i], images[i+1], poses, pt_cloud_indexed, flow=flows[i])
                 pt_cloud = np.vstack((pt_cloud, pts_3D))
                 colours = np.vstack((colours, img_colours))
 
@@ -200,8 +222,8 @@ def start(choice, images, file_path=None):
 
     elif choice == 'flow':
         save_points(choice, images, pt_cloud, colours, file_path, save_format='pcd')
-        save_points(choice, images, pt_cloud, colours, file_path, save_format='txt')
-        load_points(file_path + '.' + save_format)
+        #save_points(choice, images, pt_cloud, colours, file_path, save_format='txt')
+        #load_points(file_path + '.' + save_format)
 
     # homog_pt_cloud = np.vstack((pt_cloud.T, np.ones(pt_cloud.shape[0])))
     # draw.draw_matches(src_pts, dst_pts, img1_gray, img2_gray)
@@ -215,14 +237,25 @@ def main():
     if load_filename != '':
         load_points(load_filename)
     else:
-        directory = 'images/statue'
+        #directory = '/data/lake-dataset/140606f/0038/'
+        #directory = 'data/lake-dataset/140606f/0038/'
+        
         # images = ['images/statue/P1000965.JPG', 'images/statue/P1000969.JPG']
-        images = ['images/kermit/kermit001.jpg', 'images/kermit/kermit002.jpg', 'images/kermit/kermit003.jpg', 'images/kermit/kermit004.jpg']
+        images = ['/data/cdancette-flownet-tools/experiments/3D/615-620/0000_img0.jpg', 
+                  '/data/cdancette-flownet-tools/experiments/3D/615-620/0000_img1.jpg']
+        #, 'images/kermit/kermit003.jpg', 'images/kermit/kermit004.jpg']
+        #images = ['/data/CorentinFlow/Comp1/00065.jpg', '/data/CorentinFlow/Comp1/00066.jpg']#, 'images/kermit/kermit003.jpg', 'images/kermit/kermit004.jpg']
+
+        flows = ['/data/cdancette-flownet-tools/experiments/3D/615-620/0000_flow.flo',
+                 ]
+        
+        #flows = ['/data/cdancette-flownet-tools/experiments/videos/red-square/video5/flow_0065.flo']
+        
         # images = ['images/ucd_building4_all/00000000.jpg', 'images/ucd_building4_all/00000002.jpg', 'images/ucd_building4_all/00000003.jpg']
         # images = ['images/ucd_coffeeshack_all/00000007.JPG', 'images/ucd_coffeeshack_all/00000008.JPG', 'images/ucd_coffeeshack_all/00000009.JPG', 'images/ucd_coffeeshack_all/00000010.JPG']
         # images = sort_images(directory)
-        save_filepath = 'points/' + images[0].rpartition('/')[2].rpartition('.')[0]
-        start(choice, images[:2], file_path=save_filepath)
+        save_filepath = '/data/cdancette-flownet-tools/experiments/3D/615-620/615-620'
+        start(choice, images[:2], file_path=save_filepath, flows=flows)
 
 
 if __name__ == "__main__":

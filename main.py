@@ -2,7 +2,7 @@ from train import train
 import sys
 import argparse
 from run_model import run_model, run_model_multiples, run_model_lmdb
-from video import make_video
+from video import make_consecutive
 
 
 def call_train(parser):    
@@ -15,8 +15,8 @@ def call_run(parser):
 def call_run_multiples(parser):
     run_model_multiples(parser.prototxt, parser.weights, parser.listfile, parser.output_dir, flow_loss=parser.flow_loss)
 
-def call_video(parser):
-    make_video(parser.prototxt, parser.weights, parser.listfile, parser.output_dir, parser.start)
+def call_consecutive(parser):
+    make_consecutive(parser.prototxt, parser.weights, parser.listfile, parser.output_dir, parser.start)
 
 def main():
     parser = argparse.ArgumentParser(description='Use flownet 2')
@@ -26,7 +26,7 @@ def main():
     parser_train = subparsers.add_parser('train', help='a help')
     parser_run = subparsers.add_parser('run', help='a help')
     parser_run_multiple = subparsers.add_parser('run_multiple', help='a help')
-    parser_video = subparsers.add_parser('video', help='a help')
+    parser_consecutive = subparsers.add_parser('consecutive', help='a help')
 
 
     parser_train.add_argument('prototxt')
@@ -50,13 +50,13 @@ def main():
     parser_run_multiple.add_argument('--flow-loss', dest="flow_loss",action="store_true", help="use flow_loss. For this you need the flow in the input file")
     parser_run_multiple.set_defaults(flow_loss=False, func=call_run_multiples)
 
-    parser_video.add_argument('prototxt')
-    parser_video.add_argument('weights')
-    parser_video.add_argument('listfile')
-    parser_video.add_argument('output_dir')
-    parser_video.add_argument('--start', type=int, default=0, help='start at image')
+    parser_consecutive.add_argument('prototxt')
+    parser_consecutive.add_argument('weights')
+    parser_consecutive.add_argument('listfile')
+    parser_consecutive.add_argument('output_dir')
+    parser_consecutive.add_argument('--start', type=int, default=0, help='start at image')
     
-    parser_video.set_defaults(func=call_video)
+    parser_consecutive.set_defaults(func=call_consecutive)
     args = parser.parse_args()
     args.func(args)
 

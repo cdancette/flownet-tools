@@ -1,11 +1,12 @@
 import os, sys, numpy as np
 from scipy import misc
-#import cv2
+import cv2
 import caffe
 import tempfile
 from math import ceil
 flush = sys.stdout.flush
 sys.path.append("OpticalFlowToolkit/")
+from tools import apply_flow_reverse
 
 from lib.flowlib import save_flow_image, read_flow
 
@@ -121,7 +122,7 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     writeFlow(out_p, blob)
     
     
-def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False, start=0, flow_loss=False):
+def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False, start=0, flow_loss=False, save_warp=False):
     """
     Input : prototxt, weights
     listfile : list of (image1, image2)
@@ -250,7 +251,7 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
                 print('**************** FOUND NANs, RETRYING ****************')
         
         flow_blob = np.squeeze(net.blobs['predict_flow_final'].data).transpose(1, 2, 0)
-        output_flow_file = output_dir + "flow_%04d" % i
+        output_flow_file = output_dir + "%04d_flow" % i
         print("saving flow at %s" % output_flow_file)
         if save_image:
             save_flow_image(flow_blob, output_flow_file + ".png")
@@ -258,6 +259,13 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
         out_line = [ent[0], ent[1], output_flow_file]
         for blob in blobs:
             out_line.append(str(net.blobs[blob].data))
+            
+        if save_warp:
+            misc.imsave(output_dir + "%04d_img0.jpg" % i, img0)
+            misc.imsave(output_dir + "%04d_img1.jpg" % i, img1)
+
+            expected_img0 = apply_flow_reverse(img1, flow_blob)
+            misc.imsave(output_dir + "%04d_img0_expected.jpg" % i, expected_img0)
             
         output.append(out_line)
         print(out_line)
