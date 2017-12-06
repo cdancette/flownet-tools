@@ -23,6 +23,8 @@ and call `main.py run_multiple <prototxt> <weights> <listfile> <output_dir>`
 
 Use the `--save-images` flag to save the flow, the two images and the warped image1, all as image files.
 
+This will also save a text file in the output directoyr, containing several metrics (flow median, flow mean, L2 distance between warped image and original), as well as the paths of the output images and flow. 
+
 * If you have consecutive image, you can provide a list file containing only the list of single images, 
 and run `main.py consecutive <prototxt> <weights> <listfile> <output_dir>`.
 
@@ -79,7 +81,7 @@ You can use the optical flow to perform 3D reconstruction.
 
 I copied three files from the RECONSTRUCT[1] library and adapted them to work with optical flows obtained with flownet. 
 
-To use it : modify the paths in the `reconstruct.py` file, at the end.
+To use it : modify the paths in the `reconstruct.py` file, at the end.add 
 You have to give the two images, the flow, and the output paths.
 Then run `python reconstruct.py`. It will save a 3D point cloud in pcd format.
 
