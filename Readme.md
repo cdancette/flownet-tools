@@ -73,5 +73,21 @@ They are listed in the flownet2 paper : https://arxiv.org/pdf/1612.01925.pdf
 And between those two : FlowNet2-CSS, FlowNet2-SS
 
 
+## 3D reconstruction
+You need the point cloud library for this.
+
+You can use the optical flow to perform 3D reconstruction.
+
+I copied three files from the RECONSTRUCT[1] library and adapted them to work with optical flows obtained with flownet. 
+
+To use it : modify the paths in the `reconstruct.py` file, at the end.
+You have to give the two images, the flow, and the output paths.
+Then run `python reconstruct.py`. It will save a 3D point cloud in pcd format.
+
+You can then vizualize it with pcl_viewer[2] from Point Cloud Library.
+
+You can also change sensor parameter in the `processing.py` file, line 49 (sensor size, and focal length).
 
 
+[1] https://github.com/contactjiayi/RECONSTRUCT
+[2] https://github.com/PointCloudLibrary/pcl/blob/master/visualization/tools/pcd_viewer.cpp
