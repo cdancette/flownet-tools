@@ -49,7 +49,8 @@ def main():
     parser_run_multiple.add_argument('output_dir')
     parser_run_multiple.add_argument('--flow-loss', dest="flow_loss",action="store_true", help="use flow_loss. For this you need the flow in the input file")
     parser_run_multiple.add_argument('--save-images', dest="save_images",action="store_true", help="use save_images. For this you need the flow in the input file")
-    parser_run_multiple.set_defaults(flow_loss=False, save_warp=False, func=call_run_multiples)
+    parser_run_multiple.set_defaults(flow_loss=False, save_images=False, func=call_run_multiples)
+
 
     parser_consecutive.add_argument('prototxt')
     parser_consecutive.add_argument('weights')
@@ -63,8 +64,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
-    
-    
-    
+
     
