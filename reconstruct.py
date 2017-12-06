@@ -241,12 +241,13 @@ def main():
         #directory = 'data/lake-dataset/140606f/0038/'
         
         # images = ['images/statue/P1000965.JPG', 'images/statue/P1000969.JPG']
-        images = ['/data/cdancette-flownet-tools/experiments/3D/615-620/0000_img0.jpg', 
-                  '/data/cdancette-flownet-tools/experiments/3D/615-620/0000_img1.jpg']
+        images = ['/data/cdancette-flownet-tools/140625-140613/140613-4875.jpg',
+        	'/data/cdancette-flownet-tools/140625-140613/140613-4880.jpg']
+
         #, 'images/kermit/kermit003.jpg', 'images/kermit/kermit004.jpg']
         #images = ['/data/CorentinFlow/Comp1/00065.jpg', '/data/CorentinFlow/Comp1/00066.jpg']#, 'images/kermit/kermit003.jpg', 'images/kermit/kermit004.jpg']
 
-        flows = ['/data/cdancette-flownet-tools/experiments/3D/615-620/0000_flow.flo',
+        flows = ['/data/cdancette-flownet-tools/140625-140613/140613-4875_4880.flo'
                  ]
         
         #flows = ['/data/cdancette-flownet-tools/experiments/videos/red-square/video5/flow_0065.flo']
@@ -254,7 +255,7 @@ def main():
         # images = ['images/ucd_building4_all/00000000.jpg', 'images/ucd_building4_all/00000002.jpg', 'images/ucd_building4_all/00000003.jpg']
         # images = ['images/ucd_coffeeshack_all/00000007.JPG', 'images/ucd_coffeeshack_all/00000008.JPG', 'images/ucd_coffeeshack_all/00000009.JPG', 'images/ucd_coffeeshack_all/00000010.JPG']
         # images = sort_images(directory)
-        save_filepath = '/data/cdancette-flownet-tools/experiments/3D/615-620/615-620'
+        save_filepath = '/data/cdancette-flownet-tools/140625-140613/140613-4875_4880.3D'
         start(choice, images[:2], file_path=save_filepath, flows=flows)
 
 

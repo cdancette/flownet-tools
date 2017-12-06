@@ -13,7 +13,7 @@ def call_run(parser):
     run_model(parser.prototxt, parser.input_weights, parser.image0, parser.image1, parser.out_flow, verbose=False)
 
 def call_run_multiples(parser):
-    run_model_multiples(parser.prototxt, parser.weights, parser.listfile, parser.output_dir, flow_loss=parser.flow_loss)
+    run_model_multiples(parser.prototxt, parser.weights, parser.listfile, parser.output_dir, flow_loss=parser.flow_loss, save_images=parser.save_images)
 
 def call_consecutive(parser):
     make_consecutive(parser.prototxt, parser.weights, parser.listfile, parser.output_dir, parser.start)
@@ -48,7 +48,8 @@ def main():
     parser_run_multiple.add_argument('listfile')
     parser_run_multiple.add_argument('output_dir')
     parser_run_multiple.add_argument('--flow-loss', dest="flow_loss",action="store_true", help="use flow_loss. For this you need the flow in the input file")
-    parser_run_multiple.set_defaults(flow_loss=False, func=call_run_multiples)
+    parser_run_multiple.add_argument('--save-images', dest="save_images",action="store_true", help="use save_images. For this you need the flow in the input file")
+    parser_run_multiple.set_defaults(flow_loss=False, save_warp=False, func=call_run_multiples)
 
     parser_consecutive.add_argument('prototxt')
     parser_consecutive.add_argument('weights')

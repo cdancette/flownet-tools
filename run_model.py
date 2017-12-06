@@ -34,7 +34,7 @@ def writeFlow(name, flow):
     f.close() 
 
 
-def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
+def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False, write_flow_image=True):
 
     if(not os.path.exists(weights)): raise BaseException('caffemodel does not exist: '+weights)
     if(not os.path.exists(prototxt)): raise BaseException('deploy-proto does not exist: '+prototxt)
@@ -121,8 +121,16 @@ def run_model(prototxt, weights, img0_p, img1_p, out_p, verbose=False):
     
     writeFlow(out_p, blob)
     
+    if write_flow_image:
+        print("saving flow image, and warp image")
+        save_flow_image(blob, out_p + ".png")
+        # save warp
+        expected_img0 = apply_flow_reverse(img1, blob)
+        misc.imsave(out_p + "_warp.png", expected_img0)
+
     
-def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_image=False, start=0, flow_loss=False, save_warp=False):
+    
+def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_loss2'], save_images=False, start=0, flow_loss=False):
     """
     Input : prototxt, weights
     listfile : list of (image1, image2)
@@ -133,6 +141,7 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
         Call this function with a prototxt that work without LMDB, and that has only two images in input
     
     """
+    
     import os, sys, numpy as np
     import argparse
     from scipy import misc
@@ -159,10 +168,16 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
     height = -1
 
     output = []
+    
+    first_line = ['image0', 'image1', 'mean_flow', 'median_flow', 'L2_distance']
     output.append(['image0', 'image1', 'real_flow', 'estimated_flow'] + blobs)
-    n = len(ops)
-
+    
     output_file = open(output_dir + '/list_out.txt', 'w')
+
+    output_file.write(",".join(first_line))
+    output_file.write("\n")
+
+    n = len(ops)
 
     for i, ent in list(enumerate(ops))[start:]:
         print("processing", i)
@@ -253,19 +268,31 @@ def run_model_multiples(prototxt, weights, listfile, output_dir, blobs=['warp_lo
         flow_blob = np.squeeze(net.blobs['predict_flow_final'].data).transpose(1, 2, 0)
         output_flow_file = output_dir + "%04d_flow" % i
         print("saving flow at %s" % output_flow_file)
-        if save_image:
-            save_flow_image(flow_blob, output_flow_file + ".png")
+        
         writeFlow(output_flow_file + ".flo", flow_blob)
         out_line = [ent[0], ent[1], output_flow_file]
-        for blob in blobs:
-            out_line.append(str(net.blobs[blob].data))
+        
+        out_line.append("%.3f" % np.median(flow_blob))
+        out_line.append("%.3f" % np.mean(flow_blob))
+        
+        #for blob in blobs:
+        #    out_line.append(str(net.blobs[blob].data))
+        
+        
             
-        if save_warp:
+        if save_images:
+            save_flow_image(flow_blob, output_flow_file + ".png")
+
             misc.imsave(output_dir + "%04d_img0.jpg" % i, img0)
             misc.imsave(output_dir + "%04d_img1.jpg" % i, img1)
 
             expected_img0 = apply_flow_reverse(img1, flow_blob)
             misc.imsave(output_dir + "%04d_img0_expected.jpg" % i, expected_img0)
+            
+            
+            l2_loss = np.linalg.norm(img0- expected_img0)
+            
+            out_line.append("%.3f" % l2_loss)
             
         output.append(out_line)
         print(out_line)
