@@ -26,6 +26,13 @@ Use the `--save-images` flag to save the flow, the two images and the warped ima
 * If you have consecutive image, you can provide a list file containing only the list of single images, 
 and run `main.py consecutive <prototxt> <weights> <listfile> <output_dir>`.
 
+
+### Make a video
+To make a video, with a list of images, you can use ffmpeg. See `my make_video.sh` script
+
+
+## Train the network
+
 * To train the network
 Basically, follow the flownet2 documentation. You have to : 
 - create the dataset (in the lmdb format), using the command `/build/tools/convert_imageset_and_flow.bin` (see make_lmdbs.sh script in flownet2/data directory)
@@ -39,8 +46,7 @@ You can also train using my function `main.py train`
 usage: `main.py train [-h]
                      prototxt input_weights output_weights iterations log_file`
 
-
-To make a video, with a list of images, you can use ffmpeg. See `my make_video.sh` script.
+.
 
 ## Tools
 
@@ -65,4 +71,7 @@ They are listed in the flownet2 paper : https://arxiv.org/pdf/1612.01925.pdf
 - FlowNet2-s : the fastest model, but bad results
 
 And between those two : FlowNet2-CSS, FlowNet2-SS
+
+
+
 

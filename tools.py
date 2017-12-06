@@ -25,6 +25,14 @@ def open_image(image_path):
     return img
 
 def apply_flow_reverse(image, flow):
+    """
+    Arguments:
+    - image: the second image of the pair
+    - flow: the flow between image0 and the image given.
+
+    Returns : Expected image0, obtained by applying the flow on the given image. It can contain black parts, were information is missing to reconstruct the image.
+
+    """
     h, w = flow.shape[:2]
     # openCV coordinates are inversed / numpy
     map_x = flow[:,:,0] + np.arange(w)
@@ -47,8 +55,10 @@ def show_image(image):
     image_show = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     plt.imshow(image_show)
     
-    
 def new_loss(image_prev, image_after, flow):
+    """
+    DEPRECATED.
+    """
     h, w = flow.shape[:2]
     flow_x = flow[:,:,0]
     flow_y = flow[:,:,1]
@@ -81,7 +91,7 @@ def new_loss(image_prev, image_after, flow):
     ## TODO : what to do when the flow is nul ?
     
     
-#### DATASET
+#### BUILD DATASET
 
 def generate_translation_flow(height, width, dx, dy):
     """
