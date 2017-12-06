@@ -28,8 +28,7 @@ and run `main.py consecutive <prototxt> <weights> <listfile> <output_dir>`.
 
 
 ### Make a video
-To make a video, with a list of images, you can use ffmpeg. See `my make_video.sh` script
-
+To make a video, with a list of images or flow images, you can use ffmpeg. See `my make_video.sh` script.
 
 ## Train the network
 
@@ -88,6 +87,22 @@ You can then vizualize it with pcl_viewer[2] from Point Cloud Library.
 
 You can also change sensor parameter in the `processing.py` file, line 49 (sensor size, and focal length).
 
+## Summary of results.
+
+#### Fine tuning
+
+I tried to fine-tune FlowNet2-S and FlowNet2-SS on the translation dataset, but I never got better results than with the default weights (except on translated images). They were very bad visually.
+
+I didn't manage to fine-tune train the big FlowNet2 network.
+
+Other approachs we could use to fine tune to our dataset : 
+- Use the same method they used, but with the lake images as a background, and copy paste natural objects on the foreground (trees, houses).
+- We can even do something like having 2 or three layers of depth, that move relatively to one another, to simulate a translation of the boat.
+- Try to train using the warp loss. I almost did this but had no time to finish.
+
+
 
 [1] https://github.com/contactjiayi/RECONSTRUCT
 [2] https://github.com/PointCloudLibrary/pcl/blob/master/visualization/tools/pcd_viewer.cpp
+
+
